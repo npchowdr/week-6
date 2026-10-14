@@ -25,32 +25,32 @@ class Genius:
     def _request(self, endpoint: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
         """Send a GET request and return the JSON response dictionary."""
         url = f"{self.base_url}/{endpoint}"
-        response = requests.get(url, headers=self.headers, params=params or {})
+        response = requests.get(url, headers=self.headers, params=params)
         response.raise_for_status()
-        payload = response.json()
-        return payload.get("response", payload)
+        return response.json()
 
     def search(self, search_term: str, per_page: int = 10) -> list[dict[str, Any]]:
         """Search Genius for a query and return the full list of hits."""
-        data = self._request("search", {"q": search_term, "per_page": per_page})
-        return data.get("hits", [])
+        json_data = self._request("search", params={"q": search_term, "per_page": per_page})
+        return json_data["response"]["hits"]
 
     def get_artist(self, search_term: str) -> dict[str, Any]:
         """Return artist metadata from the first Genius hit for a search term."""
-        hits = self.search(search_term, per_page=10)
+        hits = self.search(search_term)
         if not hits:
             raise ValueError(f"No Genius results found for search term: {search_term!r}")
 
-        primary_artist = hits[0].get("result", {}).get("primary_artist")
+        primary_artist = hits[0]["result"]["primary_artist"]
         if primary_artist is None:
             raise ValueError(f"No primary artist found for search term: {search_term!r}")
 
-        artist_id = primary_artist.get("id")
+        artist_id = primary_artist["id"]
         if artist_id is None:
             raise ValueError(f"Artist ID not found for search term: {search_term!r}")
 
         artist_data = self._request(f"artists/{artist_id}")
-        return artist_data.get("artist", artist_data)
+        return artist_data
+        #return artist_data.get("artist", artist_data)
 
     def get_artists(self, search_terms: list[str]) -> pd.DataFrame:
         """Return a DataFrame with one row per artist search term."""
