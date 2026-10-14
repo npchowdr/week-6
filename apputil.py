@@ -50,7 +50,6 @@ class Genius:
 
         artist_data = self._request(f"artists/{artist_id}")
         return artist_data
-        #return artist_data.get("artist", artist_data)
 
     def get_artists(self, search_terms: list[str]) -> pd.DataFrame:
         """Return a DataFrame with one row per artist search term."""
@@ -59,6 +58,7 @@ class Genius:
         for search_term in search_terms:
             try:
                 artist = self.get_artist(search_term)
+                artist = artist["response"]["artist"]
             except (ValueError, KeyError, TypeError):
                 artist = {}
 
